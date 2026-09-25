@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0f172a" rx="85"/>
+  <g transform="scale(2.66666)">
+    <path d="M106 36L66 100h30l-10 56 50-68H96l10-52z" fill="url(#boltGrad)" />
+  </g>
+</svg>

@@ -2,26 +2,93 @@
 <html itemscope itemtype="http://schema.org/Map" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
 <head>
     <meta charset="utf-8"/>
-    <title>earth :: an animated map of global wind and weather</title>
-    <meta itemprop="name"                                      content="earth"/>
-    <meta itemprop="description"     name="description"        content="an animated map of global wind and weather"/>
-    <meta itemprop="author"          name="author"             content="Cameron Beccario"/>
-
-    <meta property="og:type"        content="website"/>
-    <meta property="og:title"       content="earth"/>
-    <meta property="og:description" content="An animated map of global wind and weather. Visit the community at https://www.facebook.com/EarthWindMap"/>
-    <meta property="og:url"         content="http://earth.nullschool.net"/>
-    <meta property="og:image"       content="http://earth.nullschool.net/preview.jpg"/>
+    <title>Incursio :: Animated Global Weather & Wind</title>
+    <meta itemprop="name" content="Incursio"/>
+    <meta itemprop="description" name="description" content="An animated map of global wind, waves, and weather inspired by Windy."/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link rel="apple-touch-icon" sizes="120x120" href="/iphone-icon.png"/>
-    <link rel="apple-touch-icon" sizes="152x152" href="/ipad-icon.png"/>
     <link rel="stylesheet" type="text/css" href="/styles/styles.css"/>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
 
-    <link rel="alternate" hreflang="x-default" href="http://earth.nullschool.net/"/>
-    <link rel="alternate" hreflang="ja" href="http://earth.nullschool.net/jp/"/>
+    <style>
+        .pwa-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: sans-serif;
+            border: 1px solid #2563eb;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .pwa-banner.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .pwa-banner button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .pwa-banner button.dismiss {
+            background: transparent;
+            color: #aaa;
+        }
+        
+        #offline-banner {
+            top: 0;
+            bottom: auto;
+            border-radius: 0 0 8px 8px;
+            background: #b91c1c;
+            border-color: #7f1d1d;
+            justify-content: center;
+        }
+    </style>
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                console.log('ServiceWorker registered with scope:', reg.scope);
+            }).catch(err => {
+                console.log('ServiceWorker registration failed:', err);
+            });
+        });
+    }
+    </script>
 </head>
 <body data-lang="en">
+
+    <!-- PWA Offline Banner -->
+    <div id="offline-banner" class="pwa-banner">
+        <span>⚠️ You are offline. Showing cached data.</span>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-banner">
+        <span>Install Incursio for a better experience</span>
+        <button id="pwa-install-btn">Install</button>
+        <button id="pwa-dismiss-btn" class="dismiss">Later</button>
+    </div>
 
     <!--[if lte IE 8]><p id="warn">This site requires IE9 or newer.</p><![endif]-->
 
@@ -32,125 +99,428 @@
         <svg id="foreground" class="fill-screen" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
     </div>
 
+    <!-- Hidden compatibility elements -->
     <div id="sponsor" class="invisible">
-        <p><span id="sponsor-hide" class="text-button invisible"> ✕ </span>community</p>
-        <a id="sponsor-link" href="https://www.facebook.com/EarthWindMap">EarthWindMap</a>
+        <span id="sponsor-hide" class="invisible">✕</span>
+        <a id="sponsor-link" href="#"></a>
     </div>
+    <p id="earth" class="invisible"></p>
 
+    <!-- Global Floating UI Layer -->
     <div id="details">
-        <p id="status"></p>
-        <div id="location">
-            <p>
-                <span id="location-coord"></span>
-                <span id="location-close" class="invisible text-button"> ✕ </span>
-            </p>
-            <p>
-                <span id="location-wind"></span>
-                <span id="location-wind-units" class="text-button"></span>
-            </p>
-            <p>
-                <span id="location-value"></span>
-                <span id="location-value-units" class="text-button"></span>
-            </p>
+
+        <!-- Top-Left Bar: Brand, Search & Location Card -->
+        <div id="windy-topbar">
+            <div class="windy-brand">
+                <span class="brand-badge">W</span>
+                <span class="brand-title">Incursio</span>
+            </div>
+
+            <div class="windy-search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="windy-search-input" placeholder="Search location (e.g. Pune)..." />
+                <button id="windy-search-btn" class="btn-locate" title="Search or GPS">🎯</button>
+            </div>
+
+            <!-- Weather & Coordinates Floating Card -->
+            <div id="location-card" class="windy-glass empty-location">
+                <p id="status"></p>
+                <div id="location">
+                    <div class="loc-header">
+                        <div>
+                            <span class="loc-pin">📍</span>
+                            <span id="location-coord"></span>
+                        </div>
+                        <span id="location-close" class="invisible text-button" title="Close">✕</span>
+                    </div>
+                    <div class="loc-data">
+                        <div class="loc-stat">
+                            <span class="stat-icon">💨</span>
+                            <span id="location-wind"></span>
+                            <span id="location-wind-units" class="text-button"></span>
+                        </div>
+                        <div class="loc-stat">
+                            <span class="stat-icon">🌡️</span>
+                            <span id="location-value"></span>
+                            <span id="location-value-units" class="text-button"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <p id="earth">
-            <span id="show-menu" class="text-button" title="menu">earth</span>
+        <!-- Right-Hand Floating Sidebar: Windy Layer Selector -->
+        <div id="windy-layer-sidebar">
+            <!-- Red Windy Menu Button -->
+            <div id="show-menu" class="windy-menu-btn" title="Settings & Projections">
+                <span class="menu-icon">☰</span>
+                <span class="menu-text">Menu</span>
+            </div>
+
+            <!-- Vertical Layer Stack -->
+            <div class="windy-layers-list">
+                <div class="windy-layer-item text-button" id="overlay-wind" title="Wind Speed & Streamlines">
+                    <span class="layer-icon icon-wind">🌀</span>
+                    <span class="layer-name">Wind</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-total_cloud_water" title="Clouds & Rain">
+                    <span class="layer-icon icon-rain">🌧️</span>
+                    <span class="layer-name">Rain, clouds</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-temp" title="Temperature">
+                    <span class="layer-icon icon-temp">🌡️</span>
+                    <span class="layer-name">Temperature</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-relative_humidity" title="Relative Humidity">
+                    <span class="layer-icon icon-humidity">💧</span>
+                    <span class="layer-name">Humidity</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-currents" title="Ocean Waves & Currents">
+                    <span class="layer-icon icon-waves">🌊</span>
+                    <span class="layer-name">Waves</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-total_precipitable_water" title="Precipitable Water">
+                    <span class="layer-icon icon-water">🌧️</span>
+                    <span class="layer-name">Precipitation</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-air_density" title="Air Density">
+                    <span class="layer-icon icon-ad">💨</span>
+                    <span class="layer-name">Air Density</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-wind_power_density" title="Wind Power Density">
+                    <span class="layer-icon icon-wpd">⚡</span>
+                    <span class="layer-name">Wind Power</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-mean_sea_level_pressure" title="Sea Level Pressure">
+                    <span class="layer-icon icon-pressure">📊</span>
+                    <span class="layer-name">Pressure</span>
+                </div>
+                <div class="windy-layer-item text-button" id="overlay-off" title="Turn Off Overlay">
+                    <span class="layer-icon icon-off">🚫</span>
+                    <span class="layer-name">None</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Altitude / Height Selector (Windy Altitude Bar) -->
+        <div id="windy-altitude-bar" class="wind-mode">
+            <span class="alt-label">Alt</span>
+            <span class="surface alt-level-item text-button" id="isobaric-10hPa" title="10 hPa (~30km)">10h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-70hPa" title="70 hPa (~18km)">70h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-250hPa" title="250 hPa (~10km)">250h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-500hPa" title="500 hPa (~5.5km)">500h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-700hPa" title="700 hPa (~3km)">700h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-850hPa" title="850 hPa (~1.5km)">850h</span>
+            <span class="surface alt-level-item text-button" id="isobaric-1000hPa" title="1000 hPa (~100m)">1000</span>
+            <span class="surface alt-level-item text-button" id="surface-level" title="Surface (10m)">Sfc</span>
+        </div>
+
+        <!-- Bottom Center: Timeline Player Bar -->
+        <div id="windy-bottom-bar">
+            <button id="btn-play-pause" class="windy-play-btn" title="Play / Pause Time Progression">
+                <span id="play-icon">▶</span>
+            </button>
+            <div class="windy-time-controls">
+                <span class="time-btn text-button" id="nav-backward-more" title="-1 Day">« -1d</span>
+                <span class="time-btn text-button" id="nav-backward" title="-3 Hours">‹ -3h</span>
+                <span class="time-btn now-pill text-button highlighted" id="nav-now" title="Current Conditions">Now</span>
+                <span class="time-btn text-button" id="nav-forward" title="+3 Hours">+3h ›</span>
+                <span class="time-btn text-button" id="nav-forward-more" title="+1 Day">+1d »</span>
+            </div>
+            <div class="windy-date-badge">
+                <span id="data-date" class="local"></span>
+                <span id="toggle-zone" class="text-button">⇄ UTC</span>
+            </div>
             <span id="progress" class="invisible"></span>
-        </p>
-
-        <div id="menu" class="invisible">
-            <p>Date | <span
-                id="data-date" class="local"></span> <span
-                id="toggle-zone" class="text-button"></span>
-            </p>
-            <p>Data | <span id="data-layer"></span></p>
-            <p><span id="scale-label">Scale | </span><canvas id="scale"></canvas></p>
-            <p>Source | <span id="data-center"></span></p>
-            <p>Control | <span
-                class="text-button" id="nav-now" title="Current Conditions">Now</span><span
-                class="text-button" id="nav-backward-more"> « </span> – <span
-                class="text-button" id="nav-backward"> ‹ </span> – <span
-                class="text-button" id="nav-forward"> › </span> – <span
-                class="text-button" id="nav-forward-more"> » </span><span
-                class="text-button" id="show-location" title="Current Position">〖◯〗</span><span
-                class="text-button" id="option-show-grid" title="Toggle Grid">Grid</span>
-            </p>
-            <p>Mode | <span
-                class="text-button" id="wind-mode-enable">Air</span> – <span
-                class="text-button" id="ocean-mode-enable">Ocean</span>
-            </p>
-            <p class="wind-mode">Height | <span
-                class="surface text-button" id="surface-level" title="Surface">Sfc</span> – <span
-                class="surface text-button" id="isobaric-1000hPa">1000</span> – <span
-                class="surface text-button" id="isobaric-850hPa">850</span> – <span
-                class="surface text-button" id="isobaric-700hPa">700</span> – <span
-                class="surface text-button" id="isobaric-500hPa">500</span> – <span
-                class="surface text-button" id="isobaric-250hPa">250</span> – <span
-                class="surface text-button" id="isobaric-70hPa">70</span> – <span
-                class="surface text-button" id="isobaric-10hPa">10</span> hPa
-            </p>
-            <p class="wind-mode">Overlay | <span
-                class="text-button" id="overlay-off">None</span> – <span
-                class="text-button" id="overlay-wind" title="Wind Speed">Wind</span> – <span
-                class="text-button" id="overlay-temp" title="Temperature">Temp</span> – <span
-                class="text-button" id="overlay-relative_humidity" title="Relative Humidity">RH</span> – <span
-                class="text-button" id="overlay-air_density" title="Air Density">AD</span> – <span
-                class="text-button" id="overlay-wind_power_density" title="Wind Power Density">WPD</span>
-            </p>
-            <p class="wind-mode"><span style="visibility:hidden">Overlay</span> | <span
-                class="text-button" id="overlay-total_precipitable_water" title="Total Precipitable Water">TPW</span> – <span
-                class="text-button" id="overlay-total_cloud_water" title="Total Cloud Water">TCW</span> – <span
-                class="text-button" id="overlay-mean_sea_level_pressure" title="Mean Sea Level Pressure">MSLP</span>
-            </p>
-            <p class="ocean-mode invisible">Animate | <span
-                class="text-button" id="animate-currents" title="Currents">Currents</span>
-            </p>
-            <p class="ocean-mode invisible">Overlay | <span
-                class="text-button" id="overlay-ocean-off">None</span> – <span
-                class="text-button" id="overlay-currents" title="Currents">Currents</span>
-            </p>
-            <p class="ocean-mode invisible"><span style="visibility:hidden">Overlay</span> |</p>
-            <p>Projection | <span
-                class="proj text-button" id="atlantis" title="Atlantis">A</span> – <span
-                class="proj text-button" id="azimuthal_equidistant" title="Azimuthal Equidistant">AE</span> – <span
-                class="proj text-button" id="conic_equidistant" title="Conic Equidistant">CE</span> – <span
-                class="proj text-button" id="equirectangular" title="Equirectangular">E</span> – <span
-                class="proj text-button" id="orthographic" title="Orthographic">O</span> – <span
-                class="proj text-button" id="stereographic" title="Stereographic">S</span> – <span
-                class="proj text-button" id="waterman" title="Waterman Butterfly">WB</span> – <span
-                class="proj text-button" id="winkel3" title="Winkel Tripel">W3</span>
-            </p>
-            <!--<p>免責事項 | 正確な情報を提供するためのものではありません</p>-->
-            <p id="lang"><a href="/jp" class="internal-link">日本語</a></p>
-            <p>
-                <a href="about.html" class="internal-link">about</a>
-                <a href="https://www.facebook.com/EarthWindMap" class="social-icon" title="Facebook">&#xe027;</a>
-                <a href="https://twitter.com/cambecc" class="social-icon" title="Twitter">&#xe086;</a>
-            </p>
         </div>
+
+        <!-- Bottom-Right: Color Scale & Quick Map Tools -->
+        <div id="windy-bottom-right">
+            <div id="windy-scale-container">
+                <div class="scale-meta">
+                    <span id="scale-label">Scale</span>
+                </div>
+                <canvas id="scale"></canvas>
+            </div>
+            <div class="windy-map-tools">
+                <span class="map-tool-btn text-button" id="option-show-grid" title="Toggle Grid Lines">🌐 Grid</span>
+                <span class="map-tool-btn text-button" id="show-location" title="Current Position">🎯 GPS</span>
+                <span class="map-tool-btn text-button" id="btn-toggle-proj" title="Map Projections & Settings">🌍 3D</span>
+            </div>
+        </div>
+
+        <!-- Right Slide-out Drawer: Settings & Projections (#menu) -->
+        <div id="menu" class="invisible">
+            <div class="drawer-header">
+                <h3>Settings & Projections</h3>
+                <span id="drawer-close" title="Close Drawer">✕</span>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="drawer-section">
+                <h4>Mode</h4>
+                <div class="mode-pills">
+                    <span class="mode-pill text-button" id="wind-mode-enable">🌬️ Air</span>
+                    <span class="mode-pill text-button" id="ocean-mode-enable">🌊 Ocean</span>
+                </div>
+            </div>
+
+            <!-- Ocean Mode Controls -->
+            <div class="drawer-section ocean-mode invisible">
+                <h4>Ocean Currents</h4>
+                <div class="mode-pills">
+                    <span class="mode-pill text-button" id="animate-currents">Currents</span>
+                    <span class="mode-pill text-button" id="overlay-ocean-off">Overlay Off</span>
+                </div>
+            </div>
+
+            <!-- Map Projections -->
+            <div class="drawer-section">
+                <h4>Map Projections</h4>
+                <div class="proj-grid">
+                    <span class="proj text-button proj-btn" id="orthographic" title="Orthographic (3D Globe)">🌐 Globe (O)</span>
+                    <span class="proj text-button proj-btn" id="equirectangular" title="Equirectangular (2D Map)">🗺️ Flat (E)</span>
+                    <span class="proj text-button proj-btn" id="conic_equidistant" title="Conic Equidistant">Conic (CE)</span>
+                    <span class="proj text-button proj-btn" id="stereographic" title="Stereographic">Stereo (S)</span>
+                    <span class="proj text-button proj-btn" id="waterman" title="Waterman Butterfly">Butterfly (WB)</span>
+                    <span class="proj text-button proj-btn" id="winkel3" title="Winkel Tripel">Winkel 3 (W3)</span>
+                    <span class="proj text-button proj-btn" id="atlantis" title="Atlantis">Atlantis (A)</span>
+                    <span class="proj text-button proj-btn" id="azimuthal_equidistant" title="Azimuthal Equidistant">Azimuthal (AE)</span>
+                </div>
+            </div>
+
+            <!-- Data & Center Info -->
+            <div class="drawer-section">
+                <h4>Data Information</h4>
+                <p class="drawer-meta-item">Data: <span id="data-layer"></span></p>
+                <p class="drawer-meta-item">Source: <span id="data-center"></span></p>
+            </div>
+
+            <!-- Footer & Links -->
+            <div class="drawer-footer">
+                <span id="lang"><a href="/jp" class="internal-link">日本語</a></span>
+                <a href="about.html" class="internal-link">About</a>
+                <div>
+                    <a href="https://www.facebook.com/EarthWindMap" class="social-icon" title="Facebook">&#xe027;</a>
+                    <a href="https://twitter.com/cambecc" class="social-icon" title="Twitter">&#xe086;</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <!-- Core Libraries -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js" charset="utf-8"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone-min.js" charset="utf-8"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.1.0/topojson.min.js" charset="utf-8"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js" charset="utf-8"></script>
 
-<!--
-    <script src="/libs/underscore.js/1.6.0/underscore.js" charset="utf-8"></script>
-    <script src="/libs/backbone.js/1.1.0/backbone.js" charset="utf-8"></script>
-    <script src="/libs/topojson/1.1.0/topojson.js" charset="utf-8"></script>
-    <script src="/libs/d3/3.3.10/d3.js" charset="utf-8"></script>
--->
-
     <script src="/libs/d3.geo/0.0.0/d3.geo.projection.v0.min.js" charset="utf-8"></script>
     <script src="/libs/d3.geo/0.0.0/d3.geo.polyhedron.v0.min.js" charset="utf-8"></script>
     <script src="/libs/when/2.6.0/when.js" charset="utf-8"></script>
 
+    <!-- Earth Application Code -->
     <script src="/libs/earth/1.0.0/micro.js" charset="utf-8"></script>
     <script src="/libs/earth/1.0.0/globes.js" charset="utf-8"></script>
     <script src="/libs/earth/1.0.0/products.js" charset="utf-8"></script>
     <script src="/libs/earth/1.0.0/earth.js" charset="utf-8"></script>
 
+    <!-- Windy Interactive Enhancements Script -->
+    <script>
+    (function() {
+        // Automatically default view to India if no hash exists
+        if (!window.location.hash || window.location.hash === "#" || window.location.hash === "") {
+            window.location.hash = "#current/wind/surface/level/orthographic=78.96,22.59,1450";
+        }
+
+        // Toggle slide-out settings drawer
+        var menu = document.getElementById("menu");
+        var drawerClose = document.getElementById("drawer-close");
+        var btnToggleProj = document.getElementById("btn-toggle-proj");
+
+        if (drawerClose) {
+            drawerClose.addEventListener("click", function() {
+                if (menu) menu.classList.add("invisible");
+            });
+        }
+        if (btnToggleProj) {
+            btnToggleProj.addEventListener("click", function() {
+                if (menu) menu.classList.toggle("invisible");
+            });
+        }
+
+        // Automated Time Progression Play/Pause
+        var playBtn = document.getElementById("btn-play-pause");
+        var playIcon = document.getElementById("play-icon");
+        var playInterval = null;
+
+        if (playBtn) {
+            playBtn.addEventListener("click", function() {
+                if (playInterval) {
+                    clearInterval(playInterval);
+                    playInterval = null;
+                    playBtn.classList.remove("playing");
+                    if (playIcon) playIcon.textContent = "▶";
+                } else {
+                    playBtn.classList.add("playing");
+                    if (playIcon) playIcon.textContent = "⏸";
+                    var navForward = document.getElementById("nav-forward");
+                    if (navForward) navForward.click();
+                    playInterval = setInterval(function() {
+                        var fwd = document.getElementById("nav-forward");
+                        if (fwd) fwd.click();
+                    }, 1800);
+                }
+            });
+        }
+
+        // Location card visibility observer
+        var locCoord = document.getElementById("location-coord");
+        var locCard = document.getElementById("location-card");
+        if (locCoord && locCard) {
+            var observer = new MutationObserver(function() {
+                if (locCoord.textContent && locCoord.textContent.trim().length > 0) {
+                    locCard.classList.remove("empty-location");
+                } else {
+                    locCard.classList.add("empty-location");
+                }
+            });
+            observer.observe(locCoord, { childList: true, characterData: true, subtree: true });
+        }
+
+        // Preset City Geocodes for Instant Navigation
+        var cityMap = {
+            "pune": [73.8567, 18.5204],
+            "mumbai": [72.8777, 19.0760],
+            "delhi": [77.1025, 28.7041],
+            "bangalore": [77.5946, 12.9716],
+            "chennai": [80.2707, 13.0827],
+            "kolkata": [88.3639, 22.5726],
+            "hyderabad": [78.4867, 17.3850],
+            "london": [-0.1278, 51.5074],
+            "new york": [-74.006, 40.7128],
+            "tokyo": [139.6917, 35.6895],
+            "paris": [2.3522, 48.8566],
+            "sydney": [151.2093, -33.8688],
+            "dubai": [55.2708, 25.2048],
+            "singapore": [103.8198, 1.3521]
+        };
+
+        function flyTo(lon, lat) {
+            var currentHash = window.location.hash || "";
+            // Keep current date, mode, etc., change projection orientation
+            var parts = currentHash.replace(/^#/, "").split("/");
+            // In earth URL format: #current/wind/surface/level/orthographic=lon,lat,scale
+            // Update orientation in URL hash
+            var scale = 750;
+            var orientStr = lon.toFixed(2) + "," + lat.toFixed(2) + "," + scale;
+            if (parts.length >= 5) {
+                var projParts = parts[4].split("=");
+                parts[4] = projParts[0] + "=" + orientStr;
+                window.location.hash = "#" + parts.join("/");
+            } else {
+                window.location.hash = "#current/wind/surface/level/orthographic=" + orientStr;
+            }
+        }
+
+        var searchInput = document.getElementById("windy-search-input");
+        var searchBtn = document.getElementById("windy-search-btn");
+
+        function doSearch() {
+            if (!searchInput) return;
+            var q = searchInput.value.trim().toLowerCase();
+            if (!q) return;
+
+            // Direct preset match
+            if (cityMap[q]) {
+                flyTo(cityMap[q][0], cityMap[q][1]);
+                return;
+            }
+            // Check partial match
+            for (var city in cityMap) {
+                if (city.indexOf(q) !== -1 || q.indexOf(city) !== -1) {
+                    flyTo(cityMap[city][0], cityMap[city][1]);
+                    return;
+                }
+            }
+            // Check lat, lon coordinates e.g. "18.52, 73.85"
+            var coordMatch = q.match(/^(-?\d+(\.\d+)?)[,\s]+(-?\d+(\.\d+)?)$/);
+            if (coordMatch) {
+                var lat = parseFloat(coordMatch[1]);
+                var lon = parseFloat(coordMatch[3]);
+                flyTo(lon, lat);
+                return;
+            }
+
+            // Fallback to OpenStreetMap Nominatim Geocoding
+            fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(q))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.length > 0) {
+                        flyTo(parseFloat(data[0].lon), parseFloat(data[0].lat));
+                    }
+                })
+                .catch(function() {});
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") doSearch();
+            });
+        }
+        if (searchBtn) {
+            searchBtn.addEventListener("click", doSearch);
+        }
+    })();
+    </script>
+    <script>
+    (function() {
+        // Online/Offline handling
+        const offlineBanner = document.getElementById('offline-banner');
+        window.addEventListener('online', () => offlineBanner.classList.remove('show'));
+        window.addEventListener('offline', () => offlineBanner.classList.add('show'));
+        if (!navigator.onLine) {
+            offlineBanner.classList.add('show');
+        }
+
+        // PWA Installation handling
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+        // Check if dismissed in last 7 days
+        const lastDismissed = localStorage.getItem('pwa-dismissed');
+        const now = new Date().getTime();
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            if (!lastDismissed || (now - lastDismissed > sevenDays)) {
+                // Show after 15 seconds
+                setTimeout(() => {
+                    installBanner.classList.add('show');
+                }, 15000);
+            }
+        });
+
+        installBtn.addEventListener('click', async () => {
+            installBanner.classList.remove('show');
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        });
+
+        dismissBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+            localStorage.setItem('pwa-dismissed', new Date().getTime());
+        });
+    })();
+    </script>
 </body>
 </html>

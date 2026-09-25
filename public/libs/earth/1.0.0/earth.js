@@ -212,7 +212,7 @@
     function buildMesh(resource) {
         var cancel = this.cancel;
         report.status("Downloading...");
-        return µ.loadJson(resource).then(function(topo) {
+        return when.all([µ.loadJson(resource), µ.loadJson("/data/india.json"), µ.loadJson("/data/cities.json")]).spread(function(topo, indiaTopo, cities) {
             if (cancel.requested) return null;
             log.time("building meshes");
             var o = topo.objects;
@@ -220,12 +220,41 @@
             var coastHi = topojson.feature(topo, µ.isMobile() ? o.coastline_110m : o.coastline_50m);
             var lakesLo = topojson.feature(topo, µ.isMobile() ? o.lakes_tiny : o.lakes_110m);
             var lakesHi = topojson.feature(topo, µ.isMobile() ? o.lakes_110m : o.lakes_50m);
+
+            var indiaNational = null;
+            var indiaStates = null;
+            if (indiaTopo && indiaTopo.objects && indiaTopo.objects.states) {
+                // Internal State Outlines: All borders between Indian states and Union Territories
+                indiaStates = topojson.mesh(indiaTopo, indiaTopo.objects.states, function(a, b) { return a !== b; });
+
+                // Sovereign International Land Boundary:
+                // Extract external boundary, excluding the maritime coast so it doesn't duplicate/overlap
+                // with Natural Earth's base coastline.
+                var rawNational = topojson.mesh(indiaTopo, indiaTopo.objects.states, function(a, b) { return a === b; });
+                if (rawNational && rawNational.coordinates && rawNational.coordinates[14]) {
+                    var mainland = rawNational.coordinates[14];
+                    // Points 1046..1174 and 0..687 represent the entire sovereign land border
+                    // (Sir Creek, Gujarat -> Rajasthan -> Punjab -> J&K -> Ladakh -> Uttarakhand -> UP/Bihar/Nepal -> Sikkim -> Arunachal -> Myanmar -> Bangladesh -> Sundarbans).
+                    // Points 688..1045 are the peninsular maritime coast already drawn seamlessly by Natural Earth.
+                    var landBorder = mainland.slice(1046).concat(mainland.slice(0, 688));
+                    indiaNational = {
+                        type: "MultiLineString",
+                        coordinates: [landBorder]
+                    };
+                } else {
+                    indiaNational = rawNational;
+                }
+            }
+
             log.timeEnd("building meshes");
             return {
                 coastLo: coastLo,
                 coastHi: coastHi,
                 lakesLo: lakesLo,
-                lakesHi: lakesHi
+                lakesHi: lakesHi,
+                indiaNational: indiaNational,
+                indiaStates: indiaStates,
+                cities: cities || []
             };
         });
     }
@@ -299,7 +328,124 @@
         var path = d3.geo.path().projection(globe.projection).pointRadius(7);
         var coastline = d3.select(".coastline");
         var lakes = d3.select(".lakes");
+        var indiaStatesEl = d3.select("#foreground .india-states");
+        if (indiaStatesEl.empty()) {
+            indiaStatesEl = d3.select("#foreground").append("path").attr("class", "india-states");
+        }
+        var indiaBoundaryEl = d3.select("#foreground .india-boundary");
+        if (indiaBoundaryEl.empty()) {
+            indiaBoundaryEl = d3.select("#foreground").append("path").attr("class", "india-boundary");
+        }
+
+        // Bind India mesh data
+        if (mesh.indiaStates) indiaStatesEl.datum(mesh.indiaStates);
+        if (mesh.indiaNational) indiaBoundaryEl.datum(mesh.indiaNational);
+        coastline.datum(mesh.coastHi);
+        lakes.datum(mesh.lakesHi);
+
+        // Cities & Towns Layer (Google-Maps style progressive disclosure)
+        var citiesLayer = d3.select("#foreground").append("g").attr("id", "cities-layer");
+        var citiesList = mesh.cities || [];
+
+        function updateCities() {
+            try {
+                var currentScale = globe.projection.scale();
+                var curView = view || µ.view();
+                var width = curView ? curView.width : window.innerWidth;
+                var height = curView ? curView.height : window.innerHeight;
+
+                // Progressive disclosure tiers:
+                // scale < 600: Globe zoomed far out -> hide cities
+                // scale 600 - 2200: Tier 1 (National Metros) -> shows at initial startup
+                // scale 2200 - 5000: Tier 1 + 2 (State capitals & primary regional cities)
+                // scale 5000 - 10000: Tier 1 + 2 + 3 (Major district centers)
+                // scale > 10000: Tier 1 + 2 + 3 + 4 (All local towns, tehsils, and hubs)
+                var maxTier = 0;
+                if (currentScale >= 10000) {
+                    maxTier = 4;
+                } else if (currentScale >= 5000) {
+                    maxTier = 3;
+                } else if (currentScale >= 2200) {
+                    maxTier = 2;
+                } else if (currentScale >= 600) {
+                    maxTier = 1;
+                }
+
+                var visible = [];
+                if (maxTier > 0) {
+                    for (var i = 0; i < citiesList.length; i++) {
+                        var c = citiesList[i];
+                        if (c.tier <= maxTier) {
+                            var pt = globe.projection([c.lon, c.lat]);
+                            if (pt && _.isFinite(pt[0]) && _.isFinite(pt[1])) {
+                                // Viewport culling with margin
+                                if (pt[0] >= -30 && pt[0] <= width + 30 && pt[1] >= -30 && pt[1] <= height + 30) {
+                                    visible.push({
+                                        city: c,
+                                        x: pt[0],
+                                        y: pt[1]
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // Decluttering collision filter (higher tiers shown first)
+                    var minDistance = currentScale >= 14000 ? 22 : (currentScale >= 5500 ? 30 : 42);
+                    var decluttered = [];
+                    for (var j = 0; j < visible.length; j++) {
+                        var cand = visible[j];
+                        var overlap = false;
+                        for (var k = 0; k < decluttered.length; k++) {
+                            var existing = decluttered[k];
+                            var dx = cand.x - existing.x;
+                            var dy = cand.y - existing.y;
+                            if ((dx * dx + dy * dy) < (minDistance * minDistance)) {
+                                overlap = true;
+                                break;
+                            }
+                        }
+                        if (!overlap) {
+                            decluttered.push(cand);
+                        }
+                    }
+                    visible = decluttered;
+                }
+
+                var selection = citiesLayer.selectAll(".city-item")
+                    .data(visible, function(d) { return d.city.name; });
+
+                selection.exit().remove();
+
+                var enter = selection.enter().append("g")
+                    .attr("class", function(d) { return "city-item tier-" + d.city.tier; });
+
+                enter.append("circle")
+                    .attr("class", "city-dot");
+
+                enter.append("text")
+                    .attr("class", "city-label")
+                    .attr("dx", 6)
+                    .attr("dy", 3)
+                    .text(function(d) { return d.city.name; });
+
+                selection.attr("transform", function(d) {
+                    return "translate(" + Math.round(d.x) + "," + Math.round(d.y) + ")";
+                });
+
+                selection.select(".city-dot")
+                    .attr("r", function(d) {
+                        if (d.city.tier === 1) return currentScale > 6000 ? 4 : 3;
+                        if (d.city.tier === 2) return currentScale > 6000 ? 3 : 2.5;
+                        return 2;
+                    });
+            } catch (err) {
+                // Safeguard against any errors
+            }
+        }
+
         d3.selectAll("path").attr("d", path);  // do an initial draw -- fixes issue with safari
+        updateCities();
 
         function drawLocationMark(point, coord) {
             // show the location on the map if defined
@@ -328,6 +474,7 @@
 
         function doDraw() {
             d3.selectAll("path").attr("d", path);
+            updateCities();
             rendererAgent.trigger("redraw");
             doDraw_throttled = _.throttle(doDraw, REDRAW_WAIT, {leading: false});
         }
@@ -347,6 +494,7 @@
                     coastline.datum(mesh.coastHi);
                     lakes.datum(mesh.lakesHi);
                     d3.selectAll("path").attr("d", path);
+                    updateCities();
                     rendererAgent.trigger("render");
                 },
                 click: drawLocationMark
@@ -886,11 +1034,16 @@
         });
 
         d3.selectAll(".fill-screen").attr("width", view.width).attr("height", view.height);
-        // Adjust size of the scale canvas to fill the width of the menu to the right of the label.
+        // Adjust size of the scale canvas to fill width cleanly.
         var label = d3.select("#scale-label").node();
+        var scaleContainer = d3.select("#windy-scale-container").node() || d3.select("#menu").node();
+        var containerWidth = (scaleContainer && scaleContainer.offsetWidth > 0) ? scaleContainer.offsetWidth : 260;
+        var labelWidth = (label && label.offsetWidth > 0) ? label.offsetWidth : 45;
+        var scaleWidth = Math.max(180, (containerWidth - labelWidth) * 0.95);
+        var scaleHeight = (label && label.offsetHeight > 0) ? Math.max(12, Math.round(label.offsetHeight / 2)) : 14;
         d3.select("#scale")
-            .attr("width", (d3.select("#menu").node().offsetWidth - label.offsetWidth) * 0.97)
-            .attr("height", label.offsetHeight / 2);
+            .attr("width", scaleWidth)
+            .attr("height", scaleHeight);
 
         d3.select("#show-menu").on("click", function() {
             if (µ.isEmbeddedInIFrame()) {

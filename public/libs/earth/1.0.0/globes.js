@@ -89,7 +89,7 @@ var globes = function() {
              * @returns {Array} the range at which this globe can be zoomed.
              */
             scaleExtent: function() {
-                return [25, 3000];
+                return [25, 60000];
             },
 
             /**
@@ -187,9 +187,15 @@ var globes = function() {
                     .attr("class", "coastline");
                 mapSvg.append("path")
                     .attr("class", "lakes");
+                // foreground-sphere first (the globe border clipping ring)
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
+                // India paths go AFTER foreground-sphere so they render on top of everything
+                foregroundSvg.append("path")
+                    .attr("class", "india-states");
+                foregroundSvg.append("path")
+                    .attr("class", "india-boundary");
             }
         };
     }
@@ -274,6 +280,10 @@ var globes = function() {
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
+                foregroundSvg.append("path")
+                    .attr("class", "india-states");
+                foregroundSvg.append("path")
+                    .attr("class", "india-boundary");
             },
             locate: function(coord) {
                 return [-coord[0], -coord[1], this.projection.rotate()[2]];
@@ -326,6 +336,12 @@ var globes = function() {
                 foregroundSvg.append("use")
                     .attr("xlink:href", "#sphere")
                     .attr("class", "foreground-sphere");
+                foregroundSvg.append("path")
+                    .attr("class", "india-states")
+                    .attr("clip-path", "url(#clip)");
+                foregroundSvg.append("path")
+                    .attr("class", "india-boundary")
+                    .attr("clip-path", "url(#clip)");
             }
         });
     }
