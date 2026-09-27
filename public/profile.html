@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Profile - Incursio</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 24px 0 32px;
+    }
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.2);
+      border: 2px solid var(--primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .avatar svg { width: 40px; height: 40px; color: var(--primary); }
+    
+    .setting-group { margin-bottom: 24px; }
+    .setting-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    
+    .input-field {
+      width: 100%;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+    .input-field:focus { outline: none; border-color: var(--primary); }
+    
+    .ghost-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 8px;
+    }
+    
+    .pill-group {
+      display: flex;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .pill-option {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .pill-option.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+    }
+    .toggle-switch {
+      width: 44px;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active { background: var(--primary); }
+    .toggle-knob {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+    .toggle-switch.active .toggle-knob { transform: translateX(20px); }
+    
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .data-row:last-child { border-bottom: none; }
+    
+    .about-links a {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="content-area">
+      <h1>Profile</h1>
+
+      <div class="avatar-section">
+        <div class="avatar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+        </div>
+        <h2 style="color: white; margin-bottom: 4px;">Guest User</h2>
+        <p>Set your location for local alerts</p>
+      </div>
+
+      <div class="card">
+        <div class="setting-label">MY LOCATION</div>
+        <input type="text" id="loc-search" class="input-field" placeholder="Search your city...">
+        <div id="loc-display" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: white;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px; color: var(--primary);"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+          <span id="current-loc-text">No location saved yet</span>
+        </div>
+        <button class="ghost-btn" onclick="updateLocation()">Update Location</button>
+      </div>
+
+      <div class="card">
+        <div class="setting-label">ALERT PREFERENCES</div>
+        
+        <p style="margin-bottom: 8px; color: white;">Alert Radius</p>
+        <div class="pill-group" id="radius-group">
+          <div class="pill-option active" data-val="5">5km</div>
+          <div class="pill-option" data-val="10">10km</div>
+          <div class="pill-option" data-val="25">25km</div>
+        </div>
+
+        <p style="margin-bottom: 8px; color: white;">Severity Threshold</p>
+        <div class="pill-group" id="severity-group">
+          <div class="pill-option active" data-val="all">All</div>
+          <div class="pill-option" data-val="moderate">Moderate+</div>
+          <div class="pill-option" data-val="severe">Severe only</div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div style="color: white; font-weight: 600;">Push Notifications</div>
+            <div id="notif-status" style="font-size: 12px; color: var(--text-secondary);">Disabled</div>
+          </div>
+          <div class="toggle-switch" id="notif-toggle" onclick="toggleNotifications()">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="setting-label">DISPLAY</div>
+        <p style="margin-bottom: 8px; color: white;">Language</p>
+        <div class="pill-group" id="lang-group">
+          <div class="pill-option active" data-val="en">English</div>
+          <div class="pill-option" data-val="hi">Hindi</div>
+        </div>
+        
+        <p style="margin-bottom: 8px; color: white;">Theme</p>
+        <div class="pill-group">
+          <div class="pill-option active" style="opacity: 0.5; cursor: not-allowed;">Dark</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="setting-label">DATA INFO</div>
+        <div class="data-row"><span>Model</span><span style="color:white">NCMRWF NEPS-G</span></div>
+        <div class="data-row"><span>Baseline</span><span style="color:white">ERA5-initialised</span></div>
+        <div class="data-row"><span>Last run</span><span style="color:white">00:00 UTC</span></div>
+        <div class="data-row"><span>Next update</span><span style="color:var(--primary)" id="countdown">Loading...</span></div>
+        <div class="data-row"><span>Source</span><span style="color:white">Open-Meteo</span></div>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 40px;" class="about-links">
+        <p style="color: white; font-weight: 600; margin-bottom: 4px;">Incursio — AI Weather Threat Intelligence</p>
+        <p style="margin-bottom: 16px;">Smart India Hackathon 2026 — Team Incursio</p>
+        <button class="ghost-btn" style="margin-bottom: 8px;">GitHub Repository</button>
+        <button class="ghost-btn" style="margin-bottom: 16px;">Live Prototype</button>
+        <p style="font-size: 12px;">Version 1.0.0</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="nav.js"></script>
+  <script>
+    // Initialize state
+    document.addEventListener('DOMContentLoaded', () => {
+      const loc = JSON.parse(localStorage.getItem('incursio_location'));
+      if (loc) document.getElementById('current-loc-text').textContent = loc.name;
+      
+      const rad = localStorage.getItem('incursio_alert_radius') || '5';
+      setGroupActive('radius-group', rad);
+      
+      const sev = localStorage.getItem('incursio_severity') || 'all';
+      setGroupActive('severity-group', sev);
+      
+      const notif = localStorage.getItem('incursio_notifications') === 'true';
+      if (notif) {
+        document.getElementById('notif-toggle').classList.add('active');
+        document.getElementById('notif-status').textContent = 'Enabled';
+      }
+      
+      const lang = localStorage.getItem('incursio_language') || 'en';
+      setGroupActive('lang-group', lang);
+      
+      startCountdown();
+    });
+
+    // Pill group listeners
+    document.querySelectorAll('.pill-group').forEach(group => {
+      if(group.id) {
+        group.addEventListener('click', (e) => {
+          if (e.target.classList.contains('pill-option') && !e.target.style.cursor) {
+            Array.from(group.children).forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            const val = e.target.getAttribute('data-val');
+            if (group.id === 'radius-group') localStorage.setItem('incursio_alert_radius', val);
+            if (group.id === 'severity-group') localStorage.setItem('incursio_severity', val);
+            if (group.id === 'lang-group') localStorage.setItem('incursio_language', val);
+          }
+        });
+      }
+    });
+
+    function setGroupActive(groupId, val) {
+      const group = document.getElementById(groupId);
+      if (group) {
+        Array.from(group.children).forEach(c => {
+          if (c.getAttribute('data-val') === val) c.classList.add('active');
+          else c.classList.remove('active');
+        });
+      }
+    }
+
+    async function updateLocation() {
+      const input = document.getElementById('loc-search').value;
+      if (!input) return;
+      
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const name = data[0].display_name.split(',')[0] + ', ' + (data[0].display_name.split(',')[1] || '');
+          const locObj = { name: name.trim(), lat: data[0].lat, lon: data[0].lon };
+          localStorage.setItem('incursio_location', JSON.stringify(locObj));
+          document.getElementById('current-loc-text').textContent = name.trim();
+          document.getElementById('loc-search').value = '';
+        } else {
+          alert('Location not found');
+        }
+      } catch (e) {
+        console.error('Geocoding failed', e);
+      }
+    }
+
+    function toggleNotifications() {
+      const toggle = document.getElementById('notif-toggle');
+      const status = document.getElementById('notif-status');
+      
+      if (toggle.classList.contains('active')) {
+        toggle.classList.remove('active');
+        status.textContent = 'Disabled';
+        localStorage.setItem('incursio_notifications', 'false');
+      } else {
+        if (Notification.permission !== "granted") {
+          Notification.requestPermission().then(perm => {
+            if (perm === "granted") {
+              enableNotifs(toggle, status);
+            }
+          });
+        } else {
+          enableNotifs(toggle, status);
+        }
+      }
+    }
+    
+    function enableNotifs(toggle, status) {
+      toggle.classList.add('active');
+      status.textContent = 'Enabled';
+      localStorage.setItem('incursio_notifications', 'true');
+    }
+    
+    function startCountdown() {
+      const el = document.getElementById('countdown');
+      setInterval(() => {
+        const now = new Date();
+        const nextHour = new Date(now);
+        nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+        const diff = nextHour - now;
+        
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

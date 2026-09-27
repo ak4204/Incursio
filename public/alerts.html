@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Alerts - Incursio</title>
+  <link rel="stylesheet" href="app.css">
+  <style>
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+    .pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    
+    .alert-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 4px solid var(--card-border);
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .alert-card.severe { border-left-color: var(--severe); }
+    .alert-card.moderate { border-left-color: var(--moderate); }
+    .alert-card.low { border-left-color: var(--low); }
+    
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .alert-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+    
+    .progress-bar-container {
+      background: rgba(255, 255, 255, 0.1);
+      height: 6px;
+      border-radius: 3px;
+      margin: 12px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--severe);
+      width: 75%;
+    }
+    
+    .alert-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .view-map-btn {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="content-area">
+      <h1 style="margin-bottom: 4px;">Active Alerts</h1>
+      <p style="margin-bottom: 20px;">3 threats detected across India</p>
+
+      <div class="filter-tabs">
+        <div class="pill active">All</div>
+        <div class="pill">SEVERE</div>
+        <div class="pill">MODERATE</div>
+        <div class="pill">LOW</div>
+      </div>
+
+      <div class="alert-list">
+        <!-- Alert 1 -->
+        <div class="alert-card severe">
+          <div class="alert-header">
+            <div class="alert-title">CYCLONE</div>
+            <span class="badge severe">SEVERE</span>
+          </div>
+          <p style="color: white; font-weight: 600; margin-bottom: 4px;">Bay of Bengal</p>
+          <p>EFI: 94th percentile</p>
+          <div class="progress-bar-container">
+            <div class="progress-bar" style="width: 94%; background: var(--severe);"></div>
+          </div>
+          <p>Landfall ETA: 11 hours</p>
+          <p>Districts: Puri, Bhubaneswar</p>
+          <div class="alert-footer">
+            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+          </div>
+        </div>
+
+        <!-- Alert 2 -->
+        <div class="alert-card severe">
+          <div class="alert-header">
+            <div class="alert-title">HEAT DOME</div>
+            <span class="badge severe">SEVERE</span>
+          </div>
+          <p style="color: white; font-weight: 600; margin-bottom: 4px;">Rajasthan</p>
+          <p>EFI: 88th percentile</p>
+          <div class="progress-bar-container">
+            <div class="progress-bar" style="width: 88%; background: var(--severe);"></div>
+          </div>
+          <p>Max Temp expected: 47°C</p>
+          <p>Districts: Jaisalmer, Bikaner</p>
+          <div class="alert-footer">
+            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+          </div>
+        </div>
+
+        <!-- Alert 3 -->
+        <div class="alert-card moderate">
+          <div class="alert-header">
+            <div class="alert-title">COLD WAVE</div>
+            <span class="badge moderate">MODERATE</span>
+          </div>
+          <p style="color: white; font-weight: 600; margin-bottom: 4px;">North India</p>
+          <p>EFI: 75th percentile</p>
+          <div class="progress-bar-container">
+            <div class="progress-bar" style="width: 75%; background: var(--moderate);"></div>
+          </div>
+          <p>Min Temp expected: 2°C</p>
+          <p>Districts: Shimla, Manali</p>
+          <div class="alert-footer">
+            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align: center; font-size: 12px; margin-top: 24px; margin-bottom: 20px;">Updated 2 minutes ago</p>
+    </div>
+  </div>
+
+  <script src="nav.js"></script>
+</body>
+</html>
