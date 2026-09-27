@@ -3,9 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Incursio</title>
+  <meta name="theme-color" content="#060d1f">
+  <title>Incursio — AI Weather Threat Intelligence</title>
   <link rel="stylesheet" href="app.css">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="/logo.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW registered', reg.scope))
+          .catch(err => console.warn('SW failed', err));
+      });
+    }
+  </script>
   <style>
     .header {
       display: flex;
@@ -215,30 +226,40 @@
     const installBanner = document.getElementById('pwa-install-banner');
     const installBtn = document.getElementById('pwa-install-btn');
     const dismissBtn = document.getElementById('pwa-dismiss-btn');
-    const lastDismissed = localStorage.getItem('incursio_install_dismissed');
+
+    // Clear old index.html dismiss key so prompt shows fresh
+    const OLD_KEY = 'pwa-dismissed';
+    if (localStorage.getItem(OLD_KEY)) localStorage.removeItem(OLD_KEY);
+
+    const lastDismissed = parseInt(localStorage.getItem('incursio_install_dismissed') || '0', 10);
     const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const shouldShow = !lastDismissed || (Date.now() - lastDismissed > sevenDays);
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      if (!lastDismissed || (Date.now() - lastDismissed > sevenDays)) {
-        setTimeout(() => installBanner.classList.add('show'), 3000);
+      if (shouldShow) {
+        setTimeout(() => installBanner.classList.add('show'), 2500);
       }
     });
 
-    installBtn.addEventListener('click', async () => {
-      installBanner.classList.remove('show');
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      }
-    });
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        installBanner.classList.remove('show');
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        }
+      });
+    }
 
-    dismissBtn.addEventListener('click', () => {
-      installBanner.classList.remove('show');
-      localStorage.setItem('incursio_install_dismissed', Date.now());
-    });
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        installBanner.classList.remove('show');
+        localStorage.setItem('incursio_install_dismissed', Date.now().toString());
+      });
+    }
   </script>
 </body>
 </html>
