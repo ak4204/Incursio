@@ -1,16 +1,12 @@
 {
-    "name": "earth",
-    "description": "Earth",
-    "version": "0.0.1",
+    "name": "incursio",
+    "description": "Incursio — Real-Time Global Atmospheric & Meteorological Visualization Platform",
+    "version": "1.0.0",
     "private": true,
-    "author": {
-        "name": "Cameron Beccario",
-        "email": "cambecc@nullschool.net"
-    },
-    "homepage": "https://github.com/cambecc/earth",
+    "homepage": "https://incursio.onrender.com",
     "repository": {
         "type": "git",
-        "url": "git://github.com/cambecc/earth.git"
+        "url": "git://github.com/ak4204/Incursio.git"
     },
     "engine": "node >= 0.10.21",
     "scripts": {
