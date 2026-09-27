@@ -111,9 +111,9 @@
 
         <!-- Top-Left Bar: Brand, Search & Location Card -->
         <div id="windy-topbar">
-            <div class="windy-brand" style="padding: 5px 10px;">
+            <div class="windy-brand" style="padding: 4px 8px;">
                 <a href="/home.html" title="Back to Home" style="display:inline-block;">
-                    <img src="/logo.png" alt="Incursio Logo" style="height: 65px; width: auto; object-fit: contain; background-color: white; border-radius: 8px; padding: 4px; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" />
+                    <img src="/logo.png" alt="Incursio Logo" style="height: 46px; width: auto; object-fit: contain; background-color: white; border-radius: 7px; padding: 3px; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" />
                 </a>
             </div>
 
@@ -216,7 +216,12 @@
             <span class="surface alt-level-item text-button" id="surface-level" title="Surface (10m)">Sfc</span>
         </div>
 
-        <!-- Bottom Center: Timeline Player Bar -->
+        <!-- Bottom Center: Timeline Player Bar (hidden until toggled) -->
+        <!-- Toggle Button -->
+        <div id="timeline-toggle" title="Toggle Timeline">
+            &#9201;
+        </div>
+
         <div id="windy-bottom-bar">
             <button id="btn-play-pause" class="windy-play-btn" title="Play / Pause Time Progression">
                 <span id="play-icon">▶</span>
@@ -338,6 +343,22 @@
         var menu = document.getElementById("menu");
         var drawerClose = document.getElementById("drawer-close");
         var btnToggleProj = document.getElementById("btn-toggle-proj");
+
+        // Timeline toggle
+        var timelineToggle = document.getElementById("timeline-toggle");
+        var bottomBar = document.getElementById("windy-bottom-bar");
+        if (timelineToggle && bottomBar) {
+            timelineToggle.addEventListener("click", function () {
+                bottomBar.classList.toggle("open");
+                timelineToggle.style.background = bottomBar.classList.contains("open")
+                    ? "rgba(59,130,246,0.45)"
+                    : "rgba(18,24,38,0.92)";
+                // Shift toggle button left so panel doesn't cover it
+                timelineToggle.style.left = bottomBar.classList.contains("open")
+                    ? "70px"
+                    : "12px";
+            });
+        }
 
         if (drawerClose) {
             drawerClose.addEventListener("click", function() {
