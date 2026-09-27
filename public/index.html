@@ -353,12 +353,25 @@
                 timelineToggle.style.background = bottomBar.classList.contains("open")
                     ? "rgba(59,130,246,0.45)"
                     : "rgba(18,24,38,0.92)";
-                // Shift toggle button left so panel doesn't cover it
                 timelineToggle.style.left = bottomBar.classList.contains("open")
                     ? "70px"
                     : "12px";
             });
         }
+
+        // Auto-switch to Local (IST) time — wait for earth.js to initialise then set local
+        setTimeout(function() {
+            var dateEl = document.getElementById("data-date");
+            var toggleZone = document.getElementById("toggle-zone");
+            if (dateEl && toggleZone) {
+                // If showing UTC (class is "utc"), click to switch to local
+                if (dateEl.classList.contains("utc")) {
+                    toggleZone.click();
+                }
+                // Update label to show IST
+                toggleZone.textContent = "\u21c4 IST";
+            }
+        }, 1500);
 
         if (drawerClose) {
             drawerClose.addEventListener("click", function() {

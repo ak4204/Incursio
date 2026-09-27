@@ -1,5 +1,5 @@
 // CACHE VERSION — bump this to force ALL clients to clear old cache instantly
-const CACHE_NAME = 'incursio-v10';
+const CACHE_NAME = 'incursio-v11';
 
 const PRECACHE = [
     '/home.html',
