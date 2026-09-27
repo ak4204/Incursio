@@ -29,7 +29,7 @@ const MIME_TYPES = {
 function handler(req, res) {
     let reqUrl = req.url.split("?")[0];
     if (reqUrl === "/" || reqUrl === "") {
-        reqUrl = "/index.html";
+        reqUrl = "/home.html";
     }
 
     const safePath = path.normalize(decodeURIComponent(reqUrl)).replace(/^(\.\.[\/\\])+/, "");
