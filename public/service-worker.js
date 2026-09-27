@@ -1,11 +1,14 @@
-const CACHE_NAME = 'incursio-cache-v3';
+const CACHE_NAME = 'incursio-cache-v5';
 const STATIC_ASSETS = [
-    '/',
+    '/home.html',
+    '/alerts.html',
+    '/forecast.html',
+    '/profile.html',
+    '/app.css',
+    '/nav.js',
     '/index.html',
     '/styles/styles.css',
     '/manifest.json',
-    '/icon-192.svg',
-    '/icon-512.svg',
     '/libs/earth/1.0.0/micro.js',
     '/libs/earth/1.0.0/globes.js',
     '/libs/earth/1.0.0/products.js',
