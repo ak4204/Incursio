@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Profile - Incursio</title>
-  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="app.css?v=12">
   <style>
     .avatar-section {
       display: flex;
@@ -128,12 +128,43 @@
       font-size: 14px;
       margin-bottom: 12px;
     }
+
+    @media (min-width: 768px) {
+      .profile-wrapper {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      .card {
+        padding: 24px;
+        border-radius: 18px;
+        margin-bottom: 20px;
+      }
+      .avatar-section {
+        margin: 16px 0 36px;
+      }
+      .avatar {
+        width: 96px;
+        height: 96px;
+      }
+      .avatar svg {
+        width: 48px;
+        height: 48px;
+      }
+      .ghost-btn {
+        transition: all 0.2s ease;
+      }
+      .ghost-btn:hover {
+        background: rgba(59, 130, 246, 0.15);
+        transform: translateY(-1px);
+      }
+    }
   </style>
 </head>
 <body>
   <div class="app-container">
     <div class="content-area">
-      <h1>Profile</h1>
+      <div class="profile-wrapper">
+        <h1>Profile</h1>
 
       <div class="avatar-section">
         <div class="avatar">
@@ -211,11 +242,11 @@
         <button class="ghost-btn" style="margin-bottom: 16px;">Live Prototype</button>
         <p style="font-size: 12px;">Version 1.0.0</p>
       </div>
-
+      </div>
     </div>
   </div>
 
-  <script src="nav.js"></script>
+  <script src="nav.js?v=14"></script>
   <script>
     // Initialize state
     document.addEventListener('DOMContentLoaded', () => {

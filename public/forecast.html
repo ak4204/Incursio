@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Forecast - Incursio</title>
-  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="app.css?v=12">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .current-card {
@@ -78,6 +78,53 @@
       padding: 16px;
       margin-bottom: 16px;
     }
+
+    @media (min-width: 768px) {
+      .current-card {
+        padding: 40px 32px;
+        border-radius: 20px;
+        margin-bottom: 28px;
+      }
+      .current-temp {
+        font-size: 80px;
+      }
+      .current-condition {
+        font-size: 22px;
+      }
+      .current-details {
+        max-width: 600px;
+        margin: 0 auto;
+        padding-top: 20px;
+      }
+      .detail-item svg {
+        width: 24px;
+        height: 24px;
+      }
+      #forecast-strip.h-scroll {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+        gap: 12px;
+        overflow-x: visible;
+        margin-bottom: 28px;
+      }
+      .day-card {
+        min-width: auto;
+        padding: 16px 8px;
+        border-radius: 14px;
+      }
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .chart-section h2 {
+        margin: 0 0 16px !important;
+      }
+      .chart-container {
+        border-radius: 18px;
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -92,10 +139,10 @@
         <div class="current-details">
           <!-- Wind Speed -->
           <div class="detail-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M32 10 C32 10 44 10 44 20 C44 30 32 30 32 30 C32 30 20 30 20 38 C20 46 28 50 36 46" />
-              <path d="M10 38 C16 38 22 38 28 36" />
-              <path d="M8 46 C14 46 22 46 30 44" />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
+              <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
+              <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
             </svg>
             <span id="main-wind">--</span>
           </div>
@@ -120,21 +167,27 @@
         <!-- Javascript will populate 10 days here -->
       </div>
 
-      <h2 style="margin: 24px 0 16px;">Precipitation</h2>
-      <div class="chart-container">
-        <canvas id="precipChart" height="150"></canvas>
-      </div>
+      <div class="charts-grid">
+        <div class="chart-section">
+          <h2 style="margin: 24px 0 16px;">Precipitation</h2>
+          <div class="chart-container">
+            <canvas id="precipChart" height="150"></canvas>
+          </div>
+        </div>
 
-      <h2 style="margin: 24px 0 16px;">Wind Speed</h2>
-      <div class="chart-container">
-        <canvas id="windChart" height="150"></canvas>
+        <div class="chart-section">
+          <h2 style="margin: 24px 0 16px;">Wind Speed</h2>
+          <div class="chart-container">
+            <canvas id="windChart" height="150"></canvas>
+          </div>
+        </div>
       </div>
 
       <p style="text-align: center; font-size: 12px; margin: 24px 0 40px;">Data: Open-Meteo | Updated hourly</p>
     </div>
   </div>
 
-  <script src="nav.js"></script>
+  <script src="nav.js?v=14"></script>
   <script>
     const wmoMap = {
       0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Alerts - Incursio</title>
-  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="app.css?v=12">
   <style>
     .filter-tabs {
       display: flex;
@@ -80,6 +80,41 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .view-map-btn:hover {
+      color: #60a5fa;
+      transform: translateX(3px);
+    }
+
+    @media (min-width: 768px) {
+      .filter-tabs {
+        gap: 12px;
+        margin-bottom: 32px;
+      }
+      .pill {
+        padding: 8px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .pill:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+      }
+      .alert-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+      .alert-card {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        border-radius: 16px;
+      }
     }
   </style>
 </head>
@@ -111,7 +146,7 @@
           <p>Landfall ETA: 11 hours</p>
           <p>Districts: Puri, Bhubaneswar</p>
           <div class="alert-footer">
-            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+            <a href="/index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
           </div>
         </div>
 
@@ -129,7 +164,7 @@
           <p>Max Temp expected: 47°C</p>
           <p>Districts: Jaisalmer, Bikaner</p>
           <div class="alert-footer">
-            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+            <a href="/index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
           </div>
         </div>
 
@@ -147,7 +182,7 @@
           <p>Min Temp expected: 2°C</p>
           <p>Districts: Shimla, Manali</p>
           <div class="alert-footer">
-            <a href="index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
+            <a href="/index.html" class="view-map-btn">View on Map <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg></a>
           </div>
         </div>
       </div>
@@ -156,6 +191,6 @@
     </div>
   </div>
 
-  <script src="nav.js"></script>
+  <script src="nav.js?v=14"></script>
 </body>
 </html>
